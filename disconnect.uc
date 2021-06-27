@@ -1,0 +1,3 @@
+{%
+devices.disconnect(_CN);
+%}
