@@ -9,11 +9,12 @@
 #include <libubox/ulog.h>
 #include <libubox/blobmsg.h>
 #include <libubox/blobmsg_json.h>
+#include <libubox/avl-cmp.h>
+#include <libubox/avl.h>
 
 struct uc_client {
-	struct uc_client *client_list;
+	struct avl_node avl;
 	struct lws *wsi;
-	int last;
 
 	bool connected;
 	char ip[64];
@@ -40,5 +41,7 @@ extern int ucode_ubus(int function, void (*cb)(char *, void*),
 
 extern void ubus_init(void);
 extern void ubus_deinit(void);
+
+void ws_client_send(char *serial, char *msg);
 
 #endif

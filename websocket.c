@@ -1,5 +1,7 @@
 #include "ucentral.h"
 
+static struct avl_tree clients = AVL_TREE_INIT(clients, avl_strcmp, false, NULL);
+
 struct ws_msg {
 	void *payload;
 	size_t len;
@@ -9,11 +11,6 @@ struct ws_vhost {
 	struct lws_context *context;
 	struct lws_vhost *vhost;
 	const struct lws_protocols *protocol;
-
-	struct uc_client *client_list;
-
-//	struct ws_msg aws_msg;
-	int current;
 };
 
 static void
@@ -27,11 +24,29 @@ ws_msg_free(void *_ws_msg)
 }
 
 static void
-ws_send(char *_msg, void *priv )
+ws_send(char *_msg, void *priv)
 {
 	struct uc_client *client = (struct uc_client *) priv;
 	int len = strlen(_msg) + 1;
 	char *msg = malloc(len + LWS_PRE);
+
+	strcpy(&msg[LWS_PRE], _msg);
+	lws_write(client->wsi, &msg[LWS_PRE], len, LWS_WRITE_TEXT);
+	free(msg);
+}
+
+void
+ws_client_send(char *serial, char *_msg)
+{
+	struct uc_client *client = avl_find_element(&clients, serial, client, avl);;
+	int len;
+	char *msg;
+
+	if (!client)
+		return;
+
+	len = strlen(_msg) + 1;
+	msg = malloc(len + LWS_PRE);
 
 	strcpy(&msg[LWS_PRE], _msg);
 	lws_write(client->wsi, &msg[LWS_PRE], len, LWS_WRITE_TEXT);
@@ -76,15 +91,15 @@ ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 			cn++;
 		}
 		ULOG_INFO("New Connection: %s / %s\n", client->ip, client->CN);
-		lws_ll_fwd_insert(client, client_list, vhost->client_list);
+		memset(&client->avl, 0, sizeof(client->avl));
+		client->avl.key = client->CN;
 		client->wsi = wsi;
-		client->last = vhost->current;
+		avl_insert(&clients, &client->avl);
 		break;
 
 	case LWS_CALLBACK_CLOSED:
 		ULOG_INFO("close connection\n");
-		lws_ll_fwd_remove(struct uc_client, client_list,
-				  client, vhost->client_list);
+		avl_delete(&clients, &client->avl);
 		ucode_rpc(U_DISCONNECT, NULL, client, NULL);
 		break;
 

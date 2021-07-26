@@ -15,6 +15,17 @@ static const struct blobmsg_policy serial_policy[__SERIAL_MAX] = {
 	[SERIAL] = { .name = "serial", .type = BLOBMSG_TYPE_STRING },
 };
 
+enum {
+	REQUEST_SERIAL,
+	REQUEST_TYPE,
+	__REQUEST_MAX,
+};
+
+static const struct blobmsg_policy request_policy[__REQUEST_MAX] = {
+	[REQUEST_SERIAL] = { .name = "serial", .type = BLOBMSG_TYPE_STRING },
+	[REQUEST_TYPE] = { .name = "type", .type = BLOBMSG_TYPE_STRING },
+};
+
 static void ucode_ubus_cb(char *state, void *priv)
 {
 	blobmsg_add_json_from_string(&u, state);
@@ -47,6 +58,9 @@ static int ubus_ucode_cb(struct ubus_context *ctx,
 static const struct ubus_method ucentral_methods[] = {
 	UBUS_METHOD("state", ubus_ucode_cb, serial_policy),
 	UBUS_METHOD("health", ubus_ucode_cb, serial_policy),
+	UBUS_METHOD("blink", ubus_ucode_cb, serial_policy),
+	UBUS_METHOD("reboot", ubus_ucode_cb, serial_policy),
+	UBUS_METHOD("request", ubus_ucode_cb, request_policy),
 	UBUS_METHOD_NOARG("connected", ubus_ucode_cb),
 	UBUS_METHOD_NOARG("devices", ubus_ucode_cb),
 };

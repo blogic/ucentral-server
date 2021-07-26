@@ -164,40 +164,6 @@ devices = {
 	},
 };
 
-command = {
-	reboot: function() {
-
-	},
-
-	upgrade: function() {
-
-	},
-
-	factory: function() {
-
-	},
-
-	leds: function() {
-
-	},
-
-	perform: function() {
-
-	},
-
-	trace: function() {
-
-	},
-
-	wifiscan: function() {
-
-	},
-
-	leds: function() {
-
-	},
-};
-
 dispatch = {
 	call: function(serial, rpc) {
 		/* is this a result message */

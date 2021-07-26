@@ -136,6 +136,26 @@ ucode_load(const char *file) {
 	return progfunc;
 }
 
+static uc_value_t *
+uc_client_send(uc_vm_t *vm, size_t nargs)
+{
+	char *serial;
+	char *msg;
+
+	if (nargs < 2)
+	        return ucv_int64_new(-1);
+
+	serial = ucv_to_string(vm, uc_fn_arg(0));
+	msg = ucv_to_string(vm, uc_fn_arg(1));
+
+	if (!serial || !msg)
+	        return ucv_int64_new(-1);
+
+	ws_client_send(serial, msg);
+
+        return ucv_int64_new(0);
+}
+
 int
 ucode_init(void)
 {
@@ -149,6 +169,7 @@ ucode_init(void)
 
 	/* load standard library into global VM scope */
 	uc_stdlib_load(uc_vm_scope_get(&vm));
+	uc_function_register(uc_vm_scope_get(&vm), "client_send", uc_client_send);
 
 	ucode_run(U_INIT, NULL, NULL);
 
