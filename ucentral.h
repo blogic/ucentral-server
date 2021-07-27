@@ -42,6 +42,6 @@ extern int ucode_ubus(int function, void (*cb)(char *, void*),
 extern void ubus_init(void);
 extern void ubus_deinit(void);
 
-void ws_client_send(char *serial, char *msg);
+void ws_client_send(const char *serial, char *msg, size_t len);
 
 #endif

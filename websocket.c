@@ -36,21 +36,14 @@ ws_send(char *_msg, void *priv)
 }
 
 void
-ws_client_send(char *serial, char *_msg)
+ws_client_send(const char *serial, char *buf, size_t len)
 {
 	struct uc_client *client = avl_find_element(&clients, serial, client, avl);;
-	int len;
-	char *msg;
 
 	if (!client)
 		return;
 
-	len = strlen(_msg) + 1;
-	msg = malloc(len + LWS_PRE);
-
-	strcpy(&msg[LWS_PRE], _msg);
-	lws_write(client->wsi, &msg[LWS_PRE], len, LWS_WRITE_TEXT);
-	free(msg);
+	lws_write(client->wsi, buf, len, LWS_WRITE_TEXT);
 }
 
 static int

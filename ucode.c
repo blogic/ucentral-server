@@ -139,21 +139,28 @@ ucode_load(const char *file) {
 static uc_value_t *
 uc_client_send(uc_vm_t *vm, size_t nargs)
 {
-	char *serial;
-	char *msg;
+	uc_value_t *serial = uc_fn_arg(0);
+	uc_value_t *msg = uc_fn_arg(1);
+	uc_stringbuf_t *buf;
 
-	if (nargs < 2)
-	        return ucv_int64_new(-1);
+	if (ucv_type(serial) != UC_STRING || ucv_type(msg) != UC_OBJECT)
+		return ucv_int64_new(-1);
 
-	serial = ucv_to_string(vm, uc_fn_arg(0));
-	msg = ucv_to_string(vm, uc_fn_arg(1));
+	buf = ucv_stringbuf_new();
 
-	if (!serial || !msg)
-	        return ucv_int64_new(-1);
+	/* reserve headroom for LWS */
+	printbuf_memset(buf, 0, 0, LWS_PRE);
 
-	ws_client_send(serial, msg);
+	/* serialize message object as JSON into buffer */
+	ucv_to_stringbuf(vm, buf, msg, true);
 
-        return ucv_int64_new(0);
+	ws_client_send(ucv_string_get(serial),
+	               &buf->buf[LWS_PRE],
+	               printbuf_length(buf) - LWS_PRE);
+
+	printbuf_free(buf);
+
+	return ucv_int64_new(0);
 }
 
 int
